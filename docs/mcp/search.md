@@ -44,7 +44,15 @@ mnemex search "bounded context"
 }
 ```
 
-Paste it under `mcpServers`, restart Claude, and the `brain.*` tools appear.
+**Claude Desktop:** paste it under `mcpServers`, then quit and reopen Claude.
+
+**Claude Code:** skip the JSON —
+
+```bash
+claude mcp add mnemex-search -e QMD_EMBED_MODEL=hf:Qwen/Qwen3-Embedding-0.6B-GGUF/Qwen3-Embedding-0.6B-Q8_0.gguf -- qmd mcp
+```
+
+Either way the `brain.*` tools appear once the client reconnects.
 
 ## Transport: stdio vs HTTP
 

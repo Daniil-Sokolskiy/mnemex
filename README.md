@@ -40,7 +40,9 @@ curl -fsSL https://raw.githubusercontent.com/Daniil-Sokolskiy/mnemex/main/instal
 ```
 
 This installs the MCP servers + CLI, scaffolds a wiki at `~/mnemex`, and prints
-a config snippet to paste into Claude Desktop. Then restart Claude and say:
+setup instructions for your client — **Claude Desktop** (paste a config block) or
+**Claude Code** (run two `claude mcp add` commands). These are local servers, so
+the web app (claude.ai) can't use them directly. Wire up your client, then say:
 
 > **"help me ingest my first book — Meditations by Marcus Aurelius"**
 
@@ -54,8 +56,11 @@ npm install -g @mnemex/library-mcp @mnemex/cli
 npx playwright install chromium          # for Anna's Archive search
 mnemex init ~/mnemex                  # scaffold the wiki
 mnemex doctor                           # verify deps
-mnemex mcp install --wiki ~/mnemex    # print Claude config snippet
+mnemex mcp install --wiki ~/mnemex    # print setup for Desktop + Claude Code
 ```
+
+`mnemex mcp install` prints copy-paste setup for both Claude Desktop and Claude
+Code and never edits any config file silently.
 
 </details>
 

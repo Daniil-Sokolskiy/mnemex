@@ -107,6 +107,6 @@ mnemex mcp install --wiki "$WIKI_DIR"
 
 echo ""
 info "Installation complete."
-echo -e "  Next: edit your Claude Desktop config (snippet above), restart Claude, then"
-echo -e "  open a chat and say: ${CYAN}\"help me ingest my first book\"${NC}"
+echo -e "  Next: follow the setup block above for YOUR client (Claude Desktop or Claude Code),"
+echo -e "  restart/verify it, then open a chat and say: ${CYAN}\"help me ingest my first book\"${NC}"
 echo ""

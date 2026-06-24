@@ -10,7 +10,7 @@ const program = new Command();
 program
   .name("mnemex")
   .description("Scaffold and manage an LLM-curated personal knowledge wiki.")
-  .version("0.1.0");
+  .version("0.1.2");
 
 program
   .command("init")
@@ -27,7 +27,7 @@ const mcp = program.command("mcp").description("MCP server setup helpers");
 
 mcp
   .command("install")
-  .description("Print the Claude Desktop config snippet for the MCP servers")
+  .description("Print MCP setup instructions (Claude Desktop + Claude Code)")
   .option("--wiki <path>", "Wiki root path")
   .option("--annas-key <key>", "Anna's Archive secret key (optional)")
   .action((opts) => mcpInstall(opts));

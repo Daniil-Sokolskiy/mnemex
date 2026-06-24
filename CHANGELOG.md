@@ -3,6 +3,17 @@
 All notable changes to this project are documented here.
 The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
+## [0.1.2] — 2026-06-25
+
+### Changed
+- `@mnemex/cli`: `mnemex mcp install` now prints detailed, client-aware setup
+  instructions — separate blocks for **Claude Desktop** (config JSON) and
+  **Claude Code** (`claude mcp add` commands), an honest note that the local
+  servers can't be used by the web app directly, OS-correct config paths, and a
+  clearer reminder about the optional search setup. Still print-only; no config
+  is ever edited silently.
+- Docs (README, quickstart, search) updated for the multi-client flow.
+
 ## [0.1.1] — 2026-06-25
 
 ### Fixed
@@ -29,5 +40,6 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
   hybrid BM25 + vector search exposed as an MCP server over the wiki.
 - Turnkey `install.sh`, methodology docs, and an Anna's Archive legal disclaimer.
 
+[0.1.2]: https://github.com/Daniil-Sokolskiy/mnemex/releases/tag/v0.1.2
 [0.1.1]: https://github.com/Daniil-Sokolskiy/mnemex/releases/tag/v0.1.1
 [0.1.0]: https://github.com/Daniil-Sokolskiy/mnemex/releases/tag/v0.1.0

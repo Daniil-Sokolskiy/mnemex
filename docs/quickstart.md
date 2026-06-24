@@ -14,16 +14,27 @@ The installer will:
 - install `qmd` (search backend) and index your wiki
 - install Chromium for Playwright
 - scaffold a wiki (default `~/mnemex`)
-- print a Claude Desktop config snippet
+- print client-specific setup instructions
 
-## 2. Wire up Claude Desktop
+The last step (`mnemex mcp install`) prints setup blocks for **both** Claude
+Desktop and Claude Code. It never edits any config silently — you copy the block
+for your client. You can re-run it anytime: `mnemex mcp install --wiki ~/mnemex`.
+
+## 2. Wire up your client
+
+These are **local** MCP servers — they read your filesystem and run Chromium, so
+they need a client running on your machine. Pick one:
+
+### Claude Desktop
 
 Open the config file the installer pointed at:
 
 - macOS: `~/Library/Application Support/Claude/claude_desktop_config.json`
+- Windows: `%APPDATA%\Claude\claude_desktop_config.json`
 - Linux: `~/.config/Claude/claude_desktop_config.json`
 
-Paste the printed snippet under `"mcpServers"`. It looks like:
+Merge the printed block under `"mcpServers"` (don't duplicate the key if it's
+already there):
 
 ```json
 {
@@ -32,12 +43,38 @@ Paste the printed snippet under `"mcpServers"`. It looks like:
       "command": "npx",
       "args": ["@mnemex/library-mcp"],
       "env": { "WIKI_ROOT": "/Users/you/mnemex" }
+    },
+    "mnemex-search": {
+      "command": "qmd",
+      "args": ["mcp"],
+      "env": { "QMD_EMBED_MODEL": "hf:Qwen/Qwen3-Embedding-0.6B-GGUF/Qwen3-Embedding-0.6B-Q8_0.gguf" }
     }
   }
 }
 ```
 
-Restart Claude Desktop.
+Then fully **quit and reopen** Claude Desktop (not just close the window).
+
+### Claude Code (CLI)
+
+No file editing — just run the two commands the installer printed:
+
+```bash
+claude mcp add mnemex-library -e WIKI_ROOT=~/mnemex -- npx @mnemex/library-mcp
+claude mcp add mnemex-search  -e QMD_EMBED_MODEL=hf:Qwen/Qwen3-Embedding-0.6B-GGUF/Qwen3-Embedding-0.6B-Q8_0.gguf -- qmd mcp
+```
+
+Check with `claude mcp list`. Add `--scope user` to enable them in every project.
+
+### Claude on the web (claude.ai)
+
+Not supported directly — the web app can't launch local programs. Use Claude
+Desktop or Claude Code. (Advanced: you could host an MCP server remotely and add
+it as a web connector, but that's outside this guide.)
+
+> `mnemex-search` only activates after you've run `mnemex setup-search` (it
+> downloads a ~2GB embedding model). Skip it if you only want book download for
+> now — `mnemex-library` works on its own.
 
 ## 3. Verify
 
