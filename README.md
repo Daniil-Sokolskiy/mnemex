@@ -66,6 +66,19 @@ mnemex mcp install --wiki ~/mnemex    # print Claude config snippet
 | [`apps/wiki-template`](apps/wiki-template) | The starter wiki: `CLAUDE.md` operating manual, page templates, ingest scripts, empty structure. |
 | **search** via [`qmd`](https://www.npmjs.com/package/@tobilu/qmd) | mnemex wires up `qmd` (local BM25 + vector engine) as the `mnemex-search` MCP server over your wiki. `mnemex setup-search` installs + indexes it; the agent then has `brain.query` for hybrid retrieval. |
 
+### Downloading from Anna's: free vs paid
+
+Search always works and needs no account. **Downloading** has two paths:
+
+| | How | Needs |
+|---|---|---|
+| **Free** | The search result includes a `download_page_url`. Open it in your browser and use Anna's free "slow download" (a short wait timer, sometimes a check). | nothing |
+| **Automated** | `library_annas_download` fetches the file directly into your wiki, no browser. | a paid Anna's membership — set `ANNAS_ARCHIVE_KEY` (your account's *secret key*) |
+
+The automated path uses Anna's `fast_download` API, which **requires a membership key** — that's Anna's restriction, not mnemex's. Free downloads exist but go through the browser slow-download page (mnemex can't fully automate that: there's a wait timer and occasionally a check, and bypassing checks is out of scope). So without a key you still get every search result plus a one-click link to grab the file for free.
+
+Project Gutenberg downloads are always free and fully automated — no key, no browser.
+
 ---
 
 ## How it works
