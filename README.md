@@ -8,6 +8,10 @@
 [![Node](https://img.shields.io/badge/node-%3E%3D20-brightgreen.svg)](https://nodejs.org)
 [![MCP](https://img.shields.io/badge/Model_Context_Protocol-compatible-8A2BE2.svg)](https://modelcontextprotocol.io)
 
+<br>
+
+![mnemex demo](assets/demo.gif)
+
 </div>
 
 ---
