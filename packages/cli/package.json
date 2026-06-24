@@ -1,0 +1,37 @@
+{
+  "name": "@mnemex/cli",
+  "version": "0.1.0",
+  "description": "CLI for mnemex: scaffold a wiki, check deps, and wire up the MCP servers.",
+  "type": "module",
+  "license": "MIT",
+  "keywords": ["mnemex", "cli", "mcp", "knowledge-management"],
+  "homepage": "https://github.com/Daniil-Sokolskiy/mnemex#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Daniil-Sokolskiy/mnemex.git",
+    "directory": "packages/cli"
+  },
+  "bin": {
+    "mnemex": "dist/index.js"
+  },
+  "files": [
+    "dist",
+    "template",
+    "README.md"
+  ],
+  "scripts": {
+    "build": "tsc && node -e \"require('node:fs').cpSync('../../apps/wiki-template','template',{recursive:true})\"",
+    "dev": "tsx src/index.ts"
+  },
+  "dependencies": {
+    "commander": "^12.1.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.5",
+    "tsx": "^4.19.2",
+    "typescript": "^5.7.2"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}

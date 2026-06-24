@@ -1,0 +1,48 @@
+{
+  "name": "@mnemex/library-mcp",
+  "version": "0.1.0",
+  "description": "MCP server to search and download books from Project Gutenberg and Anna's Archive into your LLM wiki. Includes a Playwright-based search that works against Anna's current client-side-rendered pages.",
+  "type": "module",
+  "license": "MIT",
+  "keywords": [
+    "mcp",
+    "model-context-protocol",
+    "annas-archive",
+    "project-gutenberg",
+    "llm",
+    "knowledge-management",
+    "claude",
+    "playwright"
+  ],
+  "homepage": "https://github.com/Daniil-Sokolskiy/mnemex#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Daniil-Sokolskiy/mnemex.git",
+    "directory": "packages/library-mcp"
+  },
+  "bin": {
+    "mnemex-library-mcp": "dist/index.js"
+  },
+  "files": [
+    "dist",
+    "README.md"
+  ],
+  "scripts": {
+    "build": "tsc",
+    "start": "node dist/index.js",
+    "dev": "tsx src/index.ts"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.0.4",
+    "playwright": "^1.61.0",
+    "zod": "^3.23.8"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.5",
+    "tsx": "^4.19.2",
+    "typescript": "^5.7.2"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}

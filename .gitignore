@@ -1,0 +1,49 @@
+# Dependencies
+node_modules/
+.pnpm-store/
+
+# Build output
+dist/
+build/
+*.tsbuildinfo
+
+# Environment / secrets
+.env
+.env.local
+.env.*.local
+.annas-key
+ANNAS_ARCHIVE_KEY
+
+# User wiki content — the template ships empty; never commit ingested material
+apps/wiki-template/raw/books/**
+apps/wiki-template/raw/articles/**
+apps/wiki-template/raw/assets/**
+apps/wiki-template/wiki/sources/**
+apps/wiki-template/wiki/entities/**
+apps/wiki-template/wiki/concepts/**
+apps/wiki-template/wiki/syntheses/**
+!apps/wiki-template/**/.gitkeep
+
+# Private owner-notes — must never end up in the public repo
+**/sources/Raise-Negotiation-*
+**/sources/Supplier-Outreach-*
+**/sources/WAF-Bot-Protection-*
+**/sources/Open-Source-Release-*
+**/articles/*raise-*
+
+# OS / editor cruft
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+*.swp
+*~
+
+# Playwright
+playwright-report/
+test-results/
+
+# Logs
+*.log
+npm-debug.log*
+pnpm-debug.log*
