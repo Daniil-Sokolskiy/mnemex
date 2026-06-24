@@ -474,7 +474,7 @@ export async function fastDownloadAnnas(md5: string): Promise<FastDownloadRespon
 
   const res = await fetch(url, {
     headers: {
-      "User-Agent": "brain-library-mcp/0.1",
+      "User-Agent": "mnemex-library-mcp/0.1",
       Accept: "application/json",
     },
   });
@@ -543,7 +543,7 @@ export async function downloadAnnasBook(
   }
 
   const res = await fetch(api.download_url, {
-    headers: { "User-Agent": "brain-library-mcp/0.1" },
+    headers: { "User-Agent": "mnemex-library-mcp/0.1" },
   });
   if (!res.ok) {
     throw new Error(`Anna's file download HTTP ${res.status}`);

@@ -1,10 +1,15 @@
 {
   "name": "@mnemex/cli",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "CLI for mnemex: scaffold a wiki, check deps, and wire up the MCP servers.",
   "type": "module",
   "license": "MIT",
-  "keywords": ["mnemex", "cli", "mcp", "knowledge-management"],
+  "keywords": [
+    "mnemex",
+    "cli",
+    "mcp",
+    "knowledge-management"
+  ],
   "homepage": "https://github.com/Daniil-Sokolskiy/mnemex#readme",
   "repository": {
     "type": "git",

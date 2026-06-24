@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * brain-library MCP server.
+ * mnemex-library MCP server.
  *
  * Tools:
  *   library.search             — search Gutenberg + Anna's Archive at once.
@@ -126,7 +126,7 @@ const AnnasDownloadInput = z.object({
 // ---------- server ----------
 
 const server = new Server(
-  { name: "brain-library", version: "0.1.0" },
+  { name: "mnemex-library", version: "0.1.0" },
   { capabilities: { tools: {} } },
 );
 
@@ -469,4 +469,4 @@ function formatIngestNextStep(slug: string): string {
 const transport = new StdioServerTransport();
 await server.connect(transport);
 // stderr — stdout is reserved for MCP framing.
-process.stderr.write("brain-library MCP server ready\n");
+process.stderr.write("mnemex-library MCP server ready\n");
