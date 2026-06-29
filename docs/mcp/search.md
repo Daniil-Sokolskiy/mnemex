@@ -34,11 +34,15 @@ qmd update
 qmd embed          # downloads the embedding model on first run
 ```
 
-> **Windows + reranking:** qmd's reranker may fail on the GPU backend with
-> `Failed to create any rerank context`. Force CPU with `QMD_FORCE_CPU=1` (CLI:
-> `--no-gpu`). `mnemex mcp install` already adds this env var to the
-> `mnemex-search` block on Windows, so the MCP server is covered; set it in your
-> shell too if you run `qmd query` directly.
+> **Windows + reranking:** node-llama-cpp defaults to the **Vulkan** backend on
+> Windows (CUDA needs a separate toolkit/build and isn't auto-selected), and
+> qmd's reranker fails to allocate a context there — a hard crash on an Intel
+> Iris Xe iGPU, or a silent Vulkan out-of-memory + non-reranked fallback even
+> with an RTX 3070 Ti present. Embedding still works on the GPU; only rerank
+> needs CPU. Force it with `QMD_FORCE_CPU=1` (CLI: `--no-gpu`). `mnemex mcp
+> install` already adds this env var to the `mnemex-search` block on Windows,
+> so the MCP server is covered; set it in your shell too if you run `qmd query`
+> directly.
 
 ## Keeping the index fresh
 

@@ -29,8 +29,12 @@ export function mcpInstall(opts: McpInstallOpts): void {
   const libEnv: Record<string, string> = { WIKI_ROOT: wiki };
   if (opts.annasKey) libEnv.ANNAS_ARCHIVE_KEY = opts.annasKey;
 
-  // On Windows, qmd's GPU-backed reranker can fail to create a context
-  // ("Failed to create any rerank context"); forcing CPU is reliable.
+  // On Windows, node-llama-cpp defaults to the Vulkan backend, where qmd's
+  // reranker fails to allocate a context - a hard crash on an Intel Iris Xe
+  // iGPU, and a silent Vulkan OOM + non-reranked fallback even with an RTX
+  // 3070 Ti present (CUDA needs a separate toolkit/build and isn't auto-
+  // selected). Embedding still works on the GPU; only rerank is affected, so
+  // QMD_FORCE_CPU=1 gives reliable query-time reranking.
   const isWindows = platform() === "win32";
   const searchEnv: Record<string, string> = { QMD_EMBED_MODEL };
   if (isWindows) searchEnv.QMD_FORCE_CPU = "1";
