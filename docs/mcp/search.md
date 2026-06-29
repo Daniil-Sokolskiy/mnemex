@@ -18,6 +18,28 @@ This will:
 
 Requires Node ≥ 22 and (on macOS) Homebrew SQLite — the setup script checks and tells you if anything's missing.
 
+### Windows
+
+`mnemex setup-search` runs a bash script (macOS/Homebrew-shaped), so on Windows
+do the same four steps natively in PowerShell (Node ≥ 22 required — `winget
+install OpenJS.NodeJS.LTS`):
+
+```powershell
+$model = "hf:Qwen/Qwen3-Embedding-0.6B-GGUF/Qwen3-Embedding-0.6B-Q8_0.gguf"
+$env:QMD_EMBED_MODEL = $model
+npm install -g @tobilu/qmd
+qmd collection add "$env:USERPROFILE\mnemex\wiki" --name mnemex-wiki --mask "**/*.md"
+qmd collection add "$env:USERPROFILE\mnemex\raw"  --name mnemex-raw  --mask "**/*.md"
+qmd update
+qmd embed          # downloads the embedding model on first run
+```
+
+> **Windows + reranking:** qmd's reranker may fail on the GPU backend with
+> `Failed to create any rerank context`. Force CPU with `QMD_FORCE_CPU=1` (CLI:
+> `--no-gpu`). `mnemex mcp install` already adds this env var to the
+> `mnemex-search` block on Windows, so the MCP server is covered; set it in your
+> shell too if you run `qmd query` directly.
+
 ## Keeping the index fresh
 
 After ingesting books or editing many pages:
