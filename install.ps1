@@ -127,6 +127,16 @@ $defaultDir = Join-Path $HOME 'mnemex'
 $wikiDir = Read-Host "  ? Where to create your wiki? [$defaultDir]"
 if ([string]::IsNullOrWhiteSpace($wikiDir)) { $wikiDir = $defaultDir }
 
+# A wiki at a drive root (e.g. C:\mnemex) is owned by Administrators with Users
+# limited to read+execute: `mnemex init` crashes on it and writes can be denied.
+# Steer toward a profile-local path (Initialize-Wiki still covers anyone who insists).
+if ((Split-Path -Parent $wikiDir) -match '^[A-Za-z]:\\?$') {
+  Write-Warn2 "$wikiDir is at a drive root - those folders are Administrator-owned with restricted permissions, which can break the wiki."
+  $alt = Read-Host "  ? Use $defaultDir instead? [Y/n]"
+  if ($alt -notmatch '^[nN]') { $wikiDir = $defaultDir }
+  Write-Info "Wiki location: $wikiDir"
+}
+
 if ((Test-Path $wikiDir) -and (Get-ChildItem -Force $wikiDir -ErrorAction SilentlyContinue)) {
   Write-Warn2 "Directory $wikiDir is not empty - skipping scaffold. Run 'mnemex init <dir>' manually."
 }
