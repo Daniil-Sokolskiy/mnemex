@@ -118,8 +118,16 @@ Update-SessionPath
 Write-Info "MCP servers + CLI installed"
 
 # ---- Chromium for Playwright ----
+# Install the browser with library-mcp's OWN bundled playwright, so the revision
+# matches what it loads at runtime (a bare `npx playwright install` pulls the
+# latest playwright and a different browser build, risking "browser not found"
+# in Anna's search - and prints a noisy "no dependencies" warning).
 Write-Step "Installing Chromium for Playwright (needed for Anna's search)..."
-try { npx --yes playwright install chromium }
+$libPw = Join-Path (npm root -g) '@mnemex\library-mcp\node_modules\playwright\cli.js'
+try {
+  if (Test-Path $libPw) { node $libPw install chromium }
+  else { npx --yes playwright install chromium }
+}
 catch { Write-Warn2 "Chromium install failed - run 'npx playwright install chromium' manually later." }
 
 # ---- scaffold wiki ----
