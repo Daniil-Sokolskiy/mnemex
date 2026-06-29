@@ -35,14 +35,23 @@ richer.
 
 ## Quick start (≈5 minutes)
 
+**macOS / Linux:**
+
 ```bash
 curl -fsSL https://raw.githubusercontent.com/Daniil-Sokolskiy/mnemex/main/install.sh | bash
 ```
 
-This installs the MCP servers + CLI, scaffolds a wiki at `~/mnemex`, and prints
-setup instructions for your client — **Claude Desktop** (paste a config block) or
-**Claude Code** (run two `claude mcp add` commands). These are local servers, so
-the web app (claude.ai) can't use them directly. Wire up your client, then say:
+**Windows (PowerShell):**
+
+```powershell
+irm https://raw.githubusercontent.com/Daniil-Sokolskiy/mnemex/main/install.ps1 | iex
+```
+
+This installs the MCP servers + CLI, scaffolds a wiki at `~/mnemex`
+(`%USERPROFILE%\mnemex` on Windows), and prints setup instructions for your
+client — **Claude Desktop** (paste a config block) or **Claude Code** (run two
+`claude mcp add` commands). These are local servers, so the web app (claude.ai)
+can't use them directly. Wire up your client, then say:
 
 > **"help me ingest my first book — Meditations by Marcus Aurelius"**
 
@@ -61,6 +70,10 @@ mnemex mcp install --wiki ~/mnemex    # print setup for Desktop + Claude Code
 
 `mnemex mcp install` prints copy-paste setup for both Claude Desktop and Claude
 Code and never edits any config file silently.
+
+On **Windows** the npm / `mnemex` commands are identical; install pandoc with
+`winget install JohnMacFarlane.Pandoc`, and set up search natively per
+[docs/mcp/search.md](docs/mcp/search.md) (`mnemex setup-search` is bash-only).
 
 </details>
 

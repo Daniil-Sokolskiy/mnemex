@@ -28,6 +28,7 @@ OS="$(uname -s)"
 case "$OS" in
   Linux*)  PLATFORM=linux ;;
   Darwin*) PLATFORM=mac ;;
+  MINGW*|MSYS*|CYGWIN*) die "Detected Windows ($OS). Use the PowerShell installer instead:\n  irm https://raw.githubusercontent.com/Daniil-Sokolskiy/mnemex/main/install.ps1 | iex";;
   *) die "Unsupported OS: $OS (Linux and macOS only)";;
 esac
 step "Platform: $PLATFORM"
