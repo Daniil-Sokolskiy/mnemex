@@ -29,6 +29,16 @@ export function mcpInstall(opts: McpInstallOpts): void {
   const libEnv: Record<string, string> = { WIKI_ROOT: wiki };
   if (opts.annasKey) libEnv.ANNAS_ARCHIVE_KEY = opts.annasKey;
 
+  // On Windows, node-llama-cpp defaults to the Vulkan backend, where qmd's
+  // reranker fails to allocate a context - a hard crash on an Intel Iris Xe
+  // iGPU, and a silent Vulkan OOM + non-reranked fallback even with an RTX
+  // 3070 Ti present (CUDA needs a separate toolkit/build and isn't auto-
+  // selected). Embedding still works on the GPU; only rerank is affected, so
+  // QMD_FORCE_CPU=1 gives reliable query-time reranking.
+  const isWindows = platform() === "win32";
+  const searchEnv: Record<string, string> = { QMD_EMBED_MODEL };
+  if (isWindows) searchEnv.QMD_FORCE_CPU = "1";
+
   const snippet = {
     mcpServers: {
       // mnemex's own server: search + download books into the wiki.
@@ -42,7 +52,7 @@ export function mcpInstall(opts: McpInstallOpts): void {
       "mnemex-search": {
         command: "qmd",
         args: ["mcp"],
-        env: { QMD_EMBED_MODEL },
+        env: searchEnv,
       },
     },
   };
@@ -78,11 +88,12 @@ export function mcpInstall(opts: McpInstallOpts): void {
   console.log(`\n${c.bold}${c.cyan}▸ Claude Code (CLI)${c.reset}`);
   console.log(`  Run these two commands — no file editing:\n`);
   const keyFlag = opts.annasKey ? ` -e ANNAS_ARCHIVE_KEY=${opts.annasKey}` : "";
+  const cpuFlag = isWindows ? " -e QMD_FORCE_CPU=1" : "";
   console.log(
     `  ${c.green}claude mcp add mnemex-library -e WIKI_ROOT=${wiki}${keyFlag} -- npx @mnemex/library-mcp${c.reset}`,
   );
   console.log(
-    `  ${c.green}claude mcp add mnemex-search -e QMD_EMBED_MODEL=${QMD_EMBED_MODEL} -- qmd mcp${c.reset}`,
+    `  ${c.green}claude mcp add mnemex-search -e QMD_EMBED_MODEL=${QMD_EMBED_MODEL}${cpuFlag} -- qmd mcp${c.reset}`,
   );
   console.log(
     `  ${c.dim}Verify with ${c.reset}claude mcp list${c.dim}. Add ${c.reset}--scope user${c.dim} to make them available in every project.${c.reset}`,
@@ -111,6 +122,11 @@ export function mcpInstall(opts: McpInstallOpts): void {
   console.log(
     `   ${c.dim}Skip it if you only want book download for now — mnemex-library works on its own.${c.reset}`,
   );
+  if (isWindows) {
+    console.log(
+      `   ${c.yellow}Windows:${c.reset} ${c.dim}setup-search runs a bash script — set up qmd natively instead (see docs/mcp/search.md). ${c.reset}QMD_FORCE_CPU=1${c.dim} is already in the config above.${c.reset}`,
+    );
+  }
   if (!opts.annasKey) {
     console.log(
       `${c.dim}Tip: have a paid Anna's membership? Re-run with ${c.reset}--annas-key <key>${c.dim} to enable auto-download.${c.reset}`,
