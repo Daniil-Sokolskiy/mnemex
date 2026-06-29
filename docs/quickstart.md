@@ -4,8 +4,16 @@ From zero to your first ingested book in about 10 minutes.
 
 ## 1. Install
 
+**macOS / Linux:**
+
 ```bash
 curl -fsSL https://raw.githubusercontent.com/Daniil-Sokolskiy/mnemex/main/install.sh | bash
+```
+
+**Windows (PowerShell):**
+
+```powershell
+irm https://raw.githubusercontent.com/Daniil-Sokolskiy/mnemex/main/install.ps1 | iex
 ```
 
 The installer will:

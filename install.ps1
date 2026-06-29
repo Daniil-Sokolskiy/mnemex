@@ -1,0 +1,192 @@
+#requires -version 5.1
+<#
+  mnemex turnkey installer for Windows (PowerShell).
+
+    irm https://raw.githubusercontent.com/Daniil-Sokolskiy/mnemex/main/install.ps1 | iex
+
+  Installs the MCP servers + CLI globally, installs pandoc (via winget) and
+  Chromium for Playwright, scaffolds a wiki, and prints the client setup to
+  paste/run. This is the Windows counterpart of install.sh (Linux/macOS only).
+
+  Requires Node 20+ (22+ for the optional search backend). winget is used for
+  pandoc/git/Node when missing; if you don't have winget, install those manually.
+#>
+
+$ErrorActionPreference = 'Stop'
+# Don't let benign non-zero exits from native tools (winget "already installed",
+# qmd "collection exists") abort the whole script on PowerShell 7.3+.
+$PSNativeCommandUseErrorActionPreference = $false
+
+function Write-Info { param([string]$m) Write-Host "  [+] $m" -ForegroundColor Green }
+function Write-Step { param([string]$m) Write-Host "  [>] $m" -ForegroundColor Cyan }
+function Write-Warn2 { param([string]$m) Write-Host "  [!] $m" -ForegroundColor Yellow }
+function Write-Err2 { param([string]$m) Write-Host "  [x] $m" -ForegroundColor Red }
+
+function Test-Cmd { param([string]$name) [bool](Get-Command $name -ErrorAction SilentlyContinue) }
+
+function Update-SessionPath {
+  # winget / MSI installers update the persisted PATH but not this process's
+  # copy. Re-read it so freshly-installed tools are usable in this same run.
+  $machine = [Environment]::GetEnvironmentVariable('Path', 'Machine')
+  $user = [Environment]::GetEnvironmentVariable('Path', 'User')
+  $env:Path = (@($machine, $user) | Where-Object { $_ }) -join ';'
+}
+
+function Install-WithWinget {
+  param([string]$Id, [string]$Label)
+  if (-not (Test-Cmd winget)) {
+    Write-Warn2 "winget not found - install $Label manually, then re-run."
+    return
+  }
+  Write-Step "Installing $Label via winget..."
+  winget install --id $Id -e --accept-source-agreements --accept-package-agreements --disable-interactivity | Out-Null
+  Update-SessionPath
+}
+
+function Initialize-Wiki {
+  param([string]$Dir)
+  # Prefer `mnemex init`, but its recursive fs.cpSync can hard-crash on Windows
+  # (observed exit 0xC0000409) when the target has restrictive ACLs - e.g. a
+  # folder created at a drive root like C:\mnemex, owned by Administrators with
+  # Users limited to read+execute. Verify it actually scaffolded; if not, fall
+  # back to copying the bundled template, which Copy-Item handles on those ACLs.
+  mnemex init $Dir
+  if (Test-Path (Join-Path $Dir 'CLAUDE.md')) { return }
+  Write-Warn2 "mnemex init did not scaffold the wiki - copying the bundled template directly."
+  $gRoot = (npm root -g 2>$null | Select-Object -Last 1)
+  $tpl = Join-Path $gRoot '@mnemex\cli\template'
+  if (-not (Test-Path (Join-Path $tpl 'CLAUDE.md'))) {
+    Write-Err2 "Template not found at $tpl - reinstall @mnemex/cli, then run 'mnemex init $Dir' manually."
+    return
+  }
+  New-Item -ItemType Directory -Force -Path $Dir | Out-Null
+  Copy-Item -Path (Join-Path $tpl '*') -Destination $Dir -Recurse -Force
+  if (Test-Path (Join-Path $Dir 'CLAUDE.md')) {
+    Write-Info "Wiki scaffolded from template."
+  }
+  else {
+    Write-Err2 "Could not scaffold the wiki at $Dir - check write permissions (a folder at a drive root may be Administrator-owned). Try a path under your profile, e.g. $HOME\mnemex."
+  }
+}
+
+Write-Host ""
+Write-Host "  +---------------------------------------+" -ForegroundColor Cyan
+Write-Host "  |   mnemex installer (Windows)          |" -ForegroundColor Cyan
+Write-Host "  |   your second brain, curated by an LLM |" -ForegroundColor Cyan
+Write-Host "  +---------------------------------------+" -ForegroundColor Cyan
+Write-Host ""
+
+# ---- platform sanity ----
+if (-not ($IsWindows -or $env:OS -eq 'Windows_NT')) {
+  Write-Err2 "This installer is for Windows. On macOS/Linux use install.sh."
+  return
+}
+
+# ---- Node.js (>= 20; search needs >= 22) ----
+if (-not (Test-Cmd node)) {
+  Write-Warn2 "Node.js not found."
+  Install-WithWinget 'OpenJS.NodeJS.LTS' 'Node.js LTS' | Out-Null
+}
+if (-not (Test-Cmd node)) {
+  Write-Err2 "Node.js not on PATH. Install Node 20+ from https://nodejs.org, open a new terminal, and re-run."
+  return
+}
+$nodeMajor = [int]((node -v) -replace '^v', '' -replace '\..*$', '')
+if ($nodeMajor -lt 20) {
+  Write-Err2 "Node.js 20+ required (found $(node -v)). Upgrade: winget install OpenJS.NodeJS.LTS"
+  return
+}
+Write-Info "Node.js $(node -v)"
+if ($nodeMajor -lt 22) {
+  Write-Warn2 "Node $nodeMajor detected - the optional search backend (qmd) needs Node 22+."
+}
+
+# ---- pandoc (epub/pdf -> markdown) ----
+if (-not (Test-Cmd pandoc)) { Install-WithWinget 'JohnMacFarlane.Pandoc' 'pandoc' | Out-Null }
+if (Test-Cmd pandoc) { Write-Info "pandoc present" }
+else { Write-Warn2 "pandoc missing - needed to convert books. Install: winget install JohnMacFarlane.Pandoc" }
+
+# ---- git ----
+if (-not (Test-Cmd git)) { Install-WithWinget 'Git.Git' 'git' | Out-Null }
+if (Test-Cmd git) { Write-Info "git present" }
+else { Write-Warn2 "git missing. Install: winget install Git.Git" }
+
+# ---- install packages ----
+Write-Step "Installing @mnemex packages globally (this may take a minute)..."
+npm install -g '@mnemex/library-mcp' '@mnemex/cli'
+Update-SessionPath
+Write-Info "MCP servers + CLI installed"
+
+# ---- Chromium for Playwright ----
+# Install the browser with library-mcp's OWN bundled playwright, so the revision
+# matches what it loads at runtime (a bare `npx playwright install` pulls the
+# latest playwright and a different browser build, risking "browser not found"
+# in Anna's search - and prints a noisy "no dependencies" warning).
+Write-Step "Installing Chromium for Playwright (needed for Anna's search)..."
+$libPw = Join-Path (npm root -g) '@mnemex\library-mcp\node_modules\playwright\cli.js'
+try {
+  if (Test-Path $libPw) { node $libPw install chromium }
+  else { npx --yes playwright install chromium }
+}
+catch { Write-Warn2 "Chromium install failed - run 'npx playwright install chromium' manually later." }
+
+# ---- scaffold wiki ----
+$defaultDir = Join-Path $HOME 'mnemex'
+$wikiDir = Read-Host "  ? Where to create your wiki? [$defaultDir]"
+if ([string]::IsNullOrWhiteSpace($wikiDir)) { $wikiDir = $defaultDir }
+
+# A wiki at a drive root (e.g. C:\mnemex) is owned by Administrators with Users
+# limited to read+execute: `mnemex init` crashes on it and writes can be denied.
+# Steer toward a profile-local path (Initialize-Wiki still covers anyone who insists).
+if ((Split-Path -Parent $wikiDir) -match '^[A-Za-z]:\\?$') {
+  Write-Warn2 "$wikiDir is at a drive root - those folders are Administrator-owned with restricted permissions, which can break the wiki."
+  $alt = Read-Host "  ? Use $defaultDir instead? [Y/n]"
+  if ($alt -notmatch '^[nN]') { $wikiDir = $defaultDir }
+  Write-Info "Wiki location: $wikiDir"
+}
+
+if ((Test-Path $wikiDir) -and (Get-ChildItem -Force $wikiDir -ErrorAction SilentlyContinue)) {
+  Write-Warn2 "Directory $wikiDir is not empty - skipping scaffold. Run 'mnemex init <dir>' manually."
+}
+else {
+  Write-Step "Scaffolding wiki at $wikiDir..."
+  Initialize-Wiki $wikiDir
+}
+
+# ---- optional search backend (qmd) ----
+$setupSearch = Read-Host "  ? Set up search now? Installs qmd + downloads a ~2GB model [y/N]"
+if ($setupSearch -match '^[yY]') {
+  if ($nodeMajor -lt 22) {
+    Write-Warn2 "Skipping search: qmd needs Node 22+. Upgrade (winget install OpenJS.NodeJS.LTS), then see docs/mcp/search.md."
+  }
+  else {
+    Write-Step "Setting up search backend (qmd)..."
+    $env:QMD_EMBED_MODEL = 'hf:Qwen/Qwen3-Embedding-0.6B-GGUF/Qwen3-Embedding-0.6B-Q8_0.gguf'
+    $env:QMD_FORCE_CPU = '1'  # qmd's GPU reranker can fail on Windows; CPU is reliable
+    try {
+      if (-not (Test-Cmd qmd)) { npm install -g '@tobilu/qmd'; Update-SessionPath }
+      qmd collection add (Join-Path $wikiDir 'wiki') --name mnemex-wiki --mask '**/*.md'
+      qmd collection add (Join-Path $wikiDir 'raw')  --name mnemex-raw  --mask '**/*.md'
+      qmd update
+      qmd embed
+      Write-Info "Search ready."
+    }
+    catch {
+      Write-Warn2 "Search setup didn't finish - see docs/mcp/search.md to complete it manually. ($_)"
+    }
+  }
+}
+else {
+  Write-Warn2 "Skipping search setup. See docs/mcp/search.md to enable wiki search later."
+}
+
+# ---- print MCP config ----
+Write-Host ""
+mnemex mcp install --wiki $wikiDir
+
+Write-Host ""
+Write-Info "Installation complete."
+Write-Host "  Next: follow the setup block above for YOUR client (Claude Desktop or Claude Code),"
+Write-Host "  restart/verify it, then open a chat and say: " -NoNewline
+Write-Host '"help me ingest my first book"' -ForegroundColor Cyan
+Write-Host ""
