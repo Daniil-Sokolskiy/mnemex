@@ -43,6 +43,32 @@ function Install-WithWinget {
   Update-SessionPath
 }
 
+function Initialize-Wiki {
+  param([string]$Dir)
+  # Prefer `mnemex init`, but its recursive fs.cpSync can hard-crash on Windows
+  # (observed exit 0xC0000409) when the target has restrictive ACLs - e.g. a
+  # folder created at a drive root like C:\mnemex, owned by Administrators with
+  # Users limited to read+execute. Verify it actually scaffolded; if not, fall
+  # back to copying the bundled template, which Copy-Item handles on those ACLs.
+  mnemex init $Dir
+  if (Test-Path (Join-Path $Dir 'CLAUDE.md')) { return }
+  Write-Warn2 "mnemex init did not scaffold the wiki - copying the bundled template directly."
+  $gRoot = (npm root -g 2>$null | Select-Object -Last 1)
+  $tpl = Join-Path $gRoot '@mnemex\cli\template'
+  if (-not (Test-Path (Join-Path $tpl 'CLAUDE.md'))) {
+    Write-Err2 "Template not found at $tpl - reinstall @mnemex/cli, then run 'mnemex init $Dir' manually."
+    return
+  }
+  New-Item -ItemType Directory -Force -Path $Dir | Out-Null
+  Copy-Item -Path (Join-Path $tpl '*') -Destination $Dir -Recurse -Force
+  if (Test-Path (Join-Path $Dir 'CLAUDE.md')) {
+    Write-Info "Wiki scaffolded from template."
+  }
+  else {
+    Write-Err2 "Could not scaffold the wiki at $Dir - check write permissions (a folder at a drive root may be Administrator-owned). Try a path under your profile, e.g. $HOME\mnemex."
+  }
+}
+
 Write-Host ""
 Write-Host "  +---------------------------------------+" -ForegroundColor Cyan
 Write-Host "  |   mnemex installer (Windows)          |" -ForegroundColor Cyan
@@ -106,7 +132,7 @@ if ((Test-Path $wikiDir) -and (Get-ChildItem -Force $wikiDir -ErrorAction Silent
 }
 else {
   Write-Step "Scaffolding wiki at $wikiDir..."
-  mnemex init $wikiDir
+  Initialize-Wiki $wikiDir
 }
 
 # ---- optional search backend (qmd) ----
